@@ -3,10 +3,12 @@ var uniquePhoneNumbers = [];
 var invalidCount = 0; // 유효하지 않은 번호 개수를 세기 위한 변수
 var totalCount = 0; // 전체 번호 개수를 세기 위한 변수
 var removedDuplicateCount = 0; // 중복된 번호 개수를 세기 위한 변수
+var fileName = ''; // 파일 이름을 저장하기 위한 변수
 
 $(document).ready(function () {
     $('#fileUpload').on('change', function (e) {
         var file = e.target.files[0];
+        fileName = file.name.split('.').slice(0, -1).join('.'); // 확장자 제외한 파일 이름 저장
         var reader = new FileReader();
 
         reader.onload = function (e) {
@@ -51,6 +53,7 @@ $(document).ready(function () {
             // 결과를 숨기고 버튼을 보여줌
             $('#result').hide();
             $('#toggleResultButton').show();
+            $('#downloadButton').show();
 
             // HTML로 출력
             var html = '<ul>';
@@ -85,6 +88,15 @@ $(document).ready(function () {
 
     $('#toggleResultButton').on('click', function () {
         $('#result').toggle();
+    });
+
+    $('#downloadButton').on('click', function () {
+        var wb = XLSX.utils.book_new();
+        var ws = XLSX.utils.aoa_to_sheet(uniquePhoneNumbers.map(number => [number]));
+        XLSX.utils.book_append_sheet(wb, ws, 'Unique Phone Numbers');
+
+        var downloadFileName = fileName + ' 수정본.xlsx';
+        XLSX.writeFile(wb, downloadFileName);
     });
 });
 
