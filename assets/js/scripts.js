@@ -98,13 +98,26 @@ $(document).ready(function () {
         var downloadFileName = fileName + ' 수정본.xlsx';
         XLSX.writeFile(wb, downloadFileName);
     });
+
+    $('#rangeCopyButton').on('click', function () {
+        var startIndex = parseInt($('#startIndex').val()) - 1;
+        var endIndex = parseInt($('#endIndex').val());
+
+        if (startIndex >= 0 && endIndex <= uniquePhoneNumbers.length && startIndex < endIndex) {
+            copyToClipboard(startIndex, endIndex);
+        } else {
+            alert('유효한 범위를 입력해주세요.');
+        }
+    });
 });
 
 function copyToClipboard(start, end, button) {
     var textToCopy = uniquePhoneNumbers.slice(start, end).join('\n');
     navigator.clipboard.writeText(textToCopy).then(function () {
         alert('클립보드에 복사되었습니다.');
-        $(button).addClass('clicked'); // 버튼 배경색을 빨간색으로 변경
+        if (button) {
+            $(button).addClass('clicked'); // 버튼 배경색을 빨간색으로 변경
+        }
     }, function (err) {
         console.error('클립보드 복사 실패: ', err);
     });
