@@ -53,7 +53,7 @@ $(document).ready(function () {
             // 결과를 숨기고 버튼을 보여줌
             $('#result').hide();
             $('#toggleResultButton').show();
-            $('#downloadButton').show();
+            $('#downloadButtons').show();
 
             // HTML로 출력
             var html = '<ul>';
@@ -77,6 +77,17 @@ $(document).ready(function () {
                 let range = `${start}~${end}`;
                 let button = `<button onclick="copyToClipboard(${i}, ${end}, this)">${range}</button>`;
                 $('#copyButtons').append(button);
+            }
+
+            // Download buttons 생성
+            $('#downloadButtons').html('<button onclick="downloadAll(this)">전체 다운로드</button><br>');
+            $('#downloadButtons').append('<button onclick="downloadSequentially()">전체 순차 다운로드</button><br>');
+            for (let i = 0; i < uniquePhoneNumbers.length; i += 10000) {
+                let start = i + 1;
+                let end = i + 10000 > uniquePhoneNumbers.length ? uniquePhoneNumbers.length : i + 10000;
+                let range = `${start}~${end}`;
+                let button = `<button onclick="downloadRange(${i}, ${end}, '${fileName} 수정본 ${start}-${end}.xlsx', this)">${range} 다운로드</button>`;
+                $('#downloadButtons').append(button);
             }
         } else {
             $('#result').html('<p>먼저 파일을 업로드해주세요.</p>');
@@ -121,4 +132,36 @@ function copyToClipboard(start, end, button) {
     }, function (err) {
         console.error('클립보드 복사 실패: ', err);
     });
+}
+
+function downloadRange(start, end, filename, button) {
+    var wb = XLSX.utils.book_new();
+    var ws = XLSX.utils.aoa_to_sheet(uniquePhoneNumbers.slice(start, end).map(number => [number]));
+    XLSX.utils.book_append_sheet(wb, ws, 'Unique Phone Numbers');
+
+    XLSX.writeFile(wb, filename);
+    if (button) {
+        $(button).css('background-color', 'red'); // 버튼 배경색을 빨간색으로 변경
+    }
+}
+
+function downloadAll(button) {
+    var wb = XLSX.utils.book_new();
+    var ws = XLSX.utils.aoa_to_sheet(uniquePhoneNumbers.map(number => [number]));
+    XLSX.utils.book_append_sheet(wb, ws, 'Unique Phone Numbers');
+
+    var downloadFileName = fileName + ' 전체 수정본.xlsx';
+    XLSX.writeFile(wb, downloadFileName);
+    if (button) {
+        $(button).css('background-color', 'red'); // 버튼 배경색을 빨간색으로 변경
+    }
+}
+
+function downloadSequentially() {
+    for (let i = 0; i < uniquePhoneNumbers.length; i += 10000) {
+        let start = i + 1;
+        let end = i + 10000 > uniquePhoneNumbers.length ? uniquePhoneNumbers.length : i + 10000;
+        let filename = `${fileName} 수정본 ${start}-${end}.xlsx`;
+        setTimeout(() => downloadRange(i, end, filename), i / 10000 * 2000); // 2초 간격으로 다운로드
+    }
 }
